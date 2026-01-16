@@ -16,7 +16,7 @@ constexpr Genre GenreFromString(std::string_view s) {
 }
 
 struct Book {
-    // string_view для экономии памяти, чтобы ссылаться на оригинальную строку, хранящуюся в другом контейнере
+    // string_view для экономии памяти, чтобы ссылаться на оригинальную строку, хранящуюся в контейнере BookDatabase::AuthorContainer
     std::string_view author;
     std::string title;
 
