@@ -50,6 +50,14 @@ struct LessByGenre
     {
         return static_cast<int>(a.genre) < static_cast<int>(b.genre);
     }
-}
+};
+
+struct LessByPopularity 
+{
+    bool operator()(const Book& lhs, const Book& rhs) const 
+    {
+        return lhs.read_count > rhs.read_count;
+    }
+};
 
 }  // namespace bookdb::comp

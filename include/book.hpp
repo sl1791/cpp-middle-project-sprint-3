@@ -70,8 +70,8 @@ struct Book {
     int read_count;
 
     // Ваш код для конструкторов здесь
-    constexpr Book(std::string_view author_, 
-                   std::string_view title_, 
+    constexpr Book(std::string_view title_, 
+                   std::string_view author_, 
                    int year_, 
                    Genre genre_, 
                    double rating_,
@@ -83,13 +83,13 @@ struct Book {
                    rating(rating_),
                    read_count(read_count_) {}
 
-    constexpr Book(std::string_view author_,
-                   std::string_view title_,
+    constexpr Book(std::string_view title_,
+                   std::string_view author_,
                    int year_,
                    std::string_view genre_,
                    double rating_,
                    int read_count_) :
-                   Book(author_, title_, year_, genre_, rating_, read_count_) {}
+                   Book(title_, author_, year_, GenreFromString(genre_), rating_, read_count_) {}
 };
 }  // namespace bookdb
 
