@@ -34,7 +34,7 @@ auto buildAuthorHistogramFlat(const BookDatabase<T>& cont, Comparator comp = {})
 template <BookIterator Iterator>
 auto calculateGenreRatings(Iterator first, Iterator last)
 {
-    std::map<Genre, std::pair<double, std::size_t>> grouped;
+    boost::container::flat_map<Genre, std::pair<double, std::size_t>> grouped;
 
     for(; first != last; ++first)
     {
@@ -43,7 +43,7 @@ auto calculateGenreRatings(Iterator first, Iterator last)
         ++count;
     }
 
-    std::map<Genre, double> result;
+    boost::container::flat_map<Genre, double> result;
 
     for(const auto& [genre, data] : grouped)
     {
@@ -62,12 +62,11 @@ double calculateAverageRating(const BookDatabase<T>& cont)
         return 0.0;
     }
 
-    double sum = 0.0;
-
-    for(const auto& book : cont)
-    {
-        sum += book.rating;
-    }
+    const double sum = std::accumulate(cont.begin(), cont.end(), 0.0,
+                                       [](double acc, const Book& book)
+                                       {
+                                            return acc + book.rating;
+                                       });
 
     return sum / static_cast<double>(cont.size());
 }
@@ -77,20 +76,55 @@ auto getTopNBy(BookDatabase<T>& cont, std::size_t n, Comparator comp)
 {
     std::vector<std::reference_wrapper<const Book>> result;
 
-    if(n == 0 || cont.empty())
+    if (n == 0 || cont.empty())
     {
         return result;
     }
 
-    std::sort(cont.begin(), cont.end(), comp);
-
     const auto limit = std::min(n, cont.size());
+
+    std::partial_sort(
+        cont.begin(),
+        cont.begin() + static_cast<std::ptrdiff_t>(limit),
+        cont.end(),
+        comp);
+
     result.reserve(limit);
 
     auto it = cont.begin();
-    for(std::size_t i = 0; i < limit; ++i, ++it)
+    for (std::size_t i = 0; i < limit; ++i, ++it)
     {
         result.emplace_back(*it);
+    }
+
+    return result;
+}
+
+template <BookContainerLike T>
+auto sampleRandomBooks(const BookDatabase<T>& cont, std::size_t num)
+{
+    std::vector<std::reference_wrapper<const Book>> result;
+
+    if (num == 0 || cont.empty())
+    {
+        return result;
+    }
+
+    result.reserve(cont.size());
+
+    for (const auto& book : cont)
+    {
+        result.emplace_back(book);
+    }
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    std::shuffle(result.begin(), result.end(), gen);
+
+    if (result.size() > num)
+    {
+        result.resize(num);
     }
 
     return result;

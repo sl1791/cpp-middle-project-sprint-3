@@ -6,7 +6,7 @@
 #include <vector>
 #include <initializer_list>
 #include <utility>
-#include <deque>
+#include <set>
 
 #include "book.hpp"
 #include "concepts.hpp"
@@ -35,7 +35,7 @@ public:
     using const_iterator = typename BookContainer::const_iterator;
 
 
-    using AuthorContainer = std::deque<std::string>;
+    using AuthorContainer = std::set<std::string, TransparentStringLess>;
 
     BookDatabase() = default;
 
@@ -54,29 +54,35 @@ public:
 
     void PushBack(const Book& book)
     {
-        authors_.emplace_back(book.author);
+        auto [it, inserted] = authors_.emplace(book.author);
 
         Book stored_book = book;
-        stored_book.author = authors_.back();
+        stored_book.author = *it;
 
-        books_.emplace_back(std::move(stored_book));
+        books_.pushback(std::move(stored_book));
     }
 
     void PushBack(Book&& book)
     {
-        authors_.emplace_back(book.author);
+        auto [it, inserted] = authors_.emplace(book.author);
 
-        book.author = authors_.back();
+        book.author = *it;
 
-        books_.emplace_back(std::move(book));
+        books_.pushback(std::move(book));
     }
 
     template <typename... Args>
+    requires std::constructible_from<Book, Args...>
     reference EmplaceBack(Args&&... args)
     {
-        Book book{std::forward<Args>(args)...};
-        PushBack(std::move(book));
-        return books_.back();
+        books_.emplace_back(std::forward<Args>(args)...);
+
+        auto& book = books_.back();
+
+        auto [it, inserted] = authors_.emplace(book.author);
+        book.author = *it;
+
+        return book;
     }
 
     iterator begin()
