@@ -4,6 +4,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <unordered_set>
 
 #include "book.hpp"
 #include "concepts.hpp"
@@ -15,10 +16,13 @@ template <BookContainerLike BookContainer = std::vector<Book>>
 class BookDatabase {
 public:
     // Type aliases
+    using iterator = BookContainer::iterator;
+    using const_iterator = BookContainer::const_iterator;
+    using size_type = BookContainer::size_type;
 
     // Ваш код здесь
 
-    using AuthorContainer = BookContainer /* Ваш код здесь */;
+    using AuthorContainer = std::unordered_set<std::string>;
 
     BookDatabase() = default;
 
@@ -28,8 +32,55 @@ public:
     }
 
     // Standard container interface methods
+    iterator begin() { return books_.begin(); }
+    iterator end() { return books_.end(); }
+    const_iterator begin() const { return books_.begin(); }
+    const_iterator end() const { return books_.end(); }
+    size_type size() const { return books_.size(); }
 
-    // Ваш код здесь
+    //
+    template<typename ... Arg>
+    void EmplaceBack(Arg&& ... a_Arg)
+    {
+        auto tuple = std::forward_as_tuple(std::forward<Arg>(a_Arg)...);
+        auto it = authors_.insert(std::get<0>(tuple)).first;
+        books_.emplace_back(*it, std::get<1>(tuple), 
+                    std::get<2>(tuple), std::get<3>(tuple), 
+                    std::get<4>(tuple), std::get<5>(tuple));
+    }
+
+    void PushBack(const Book& a_Book)
+    {
+        EmplaceBack(a_Book.author, a_Book.title, 
+            a_Book.year, a_Book.genre,
+            a_Book.rating, a_Book.read_count);
+    }
+
+    void PushBack(Book&& a_Book)
+    {
+        EmplaceBack(a_Book.author, 
+            std::move(a_Book.title), 
+            a_Book.year, a_Book.genre,
+            a_Book.rating, a_Book.read_count);
+    }
+
+    std::span<const Book> GetBooks() const
+    {
+        return std::span{books_};
+    }
+    std::span<Book> GetBooks()
+    {
+        return std::span{books_};
+    }
+
+    const AuthorContainer &GetAuthors()
+    {
+        return authors_;
+    }
+    const AuthorContainer &GetAuthors() const
+    {
+        return authors_;
+    }
 
 private:
     BookContainer books_;
@@ -43,9 +94,10 @@ template <>
 struct formatter<bookdb::BookDatabase<std::vector<bookdb::Book>>> {
     template <typename FormatContext>
     auto format(const bookdb::BookDatabase<std::vector<bookdb::Book>> &db, FormatContext &fc) const {
-        /*
+/*
         Раскомментируйте, когда bookdb::BookDatabase поддержит интерфейсы, доступные стандартным контейнерам
         (size/begin/...)
+*/
 
         format_to(fc.out(), "BookDatabase (size = {}): ", db.size());
 
@@ -58,7 +110,6 @@ struct formatter<bookdb::BookDatabase<std::vector<bookdb::Book>>> {
         for (const auto &author : db.GetAuthors()) {
             format_to(fc.out(), "- {}\n", author);
         }
-        */
         return fc.out();
     }
 

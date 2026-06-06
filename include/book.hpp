@@ -3,6 +3,7 @@
 #include <format>
 #include <stdexcept>
 #include <string_view>
+#include <array>
 
 namespace bookdb {
 
@@ -10,8 +11,29 @@ enum class Genre { Fiction, NonFiction, SciFi, Biography, Mystery, Unknown };
 
 // Ваш код для constexpr преобразования строк в enum::Genre и наоборот здесь
 
-constexpr Genre GenreFromString(std::string_view s) {
-    // Ваш код здесь
+constexpr std::string_view s_Fiction = "Fiction";
+constexpr std::string_view s_NonFiction = "NonFiction";
+constexpr std::string_view s_SciFi = "SciFi";
+constexpr std::string_view s_Biography = "Biography";
+constexpr std::string_view s_Mystery = "Mystery";
+
+constexpr Genre GenreFromString(std::string_view s) 
+{
+    constexpr std::array<std::pair<std::string_view, Genre>, 5> 
+        genres = 
+        {{
+            {s_Fiction, Genre::Fiction} ,
+            {s_NonFiction, Genre::NonFiction},
+            {s_SciFi, Genre::SciFi},
+            {s_Biography, Genre::Biography},
+            {s_Mystery, Genre::Mystery},
+        }};
+
+    auto it = std::find_if(genres.begin(), genres.end(),
+        [s](const auto& pair) { return pair.first == s; });
+
+    if (it != genres.end())
+        return it->second;
     return Genre::Unknown;
 }
 
@@ -26,7 +48,35 @@ struct Book {
     int read_count;
 
     // Ваш код для конструкторов здесь
-};
+    constexpr Book(std::string_view a_author,
+                    std::string a_title,
+                    int a_year,
+                    Genre a_genre,
+                    double a_rating,
+                    int a_read_count) :
+    author(a_author),
+    title(std::move(a_title)),
+    year(a_year),
+    genre(a_genre),
+    rating(a_rating),
+    read_count(a_read_count)
+    { }
+
+    constexpr Book(std::string_view a_author,
+                std::string a_title,
+                int a_year,
+                std::string a_genre,
+                double a_rating,
+                int a_read_count) :
+    author(a_author),
+    title(std::move(a_title)),
+    year(a_year),
+    genre(GenreFromString(a_genre)),
+    rating(a_rating),
+    read_count(a_read_count)
+    { }
+}; // Book
+
 }  // namespace bookdb
 
 namespace std {
@@ -57,6 +107,22 @@ struct formatter<bookdb::Genre, char> {
     }
 };
 
-// Ваш код для std::formatter<Book> здесь
+template <>
+struct formatter<bookdb::Book, char> {
+    template <typename FormatContext>
+    auto format(const bookdb::Book b, FormatContext &fc) const {
+        return format_to(fc.out(), "{} {} {} {} {} {}", 
+            b.author,
+            b.title,
+            b.year,
+            b.genre,
+            b.rating,
+            b.read_count);
+    }
+
+    constexpr auto parse(format_parse_context &ctx) {
+        return ctx.begin();  // Просто игнорируем пользовательский формат
+    }
+};
 
 }  // namespace std
