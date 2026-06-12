@@ -5,7 +5,13 @@
 
 namespace bookdb {
 
-struct TransparentStringLess {};
+struct TransparentStringLess 
+{
+    bool operator()(std::string_view a_L, std::string_view a_R)const
+    {
+        return a_L < a_R;
+    }
+};
 
 struct TransparentStringEqual {};
 

@@ -22,7 +22,7 @@ int main() {
 
     /*
 
-    Код закомментирован, чтобы не приводить к ошибке компиляции
+    Код закомментирован, чтобы не приводить к ошибке компиляции*/
 
     // Add some books
     db.EmplaceBack("1984", "George Orwell", 1949, Genre::SciFi, 4., 190);
@@ -41,7 +41,7 @@ int main() {
     std::sort(db.begin(), db.end(), comp::LessByAuthor{});
     std::print("Books sorted by author: {}\n\n==================\n", db);
 
-    std::sort(db.begin(), db.end(), comp::LessByPopularity{});
+    std::sort(db.begin(), db.end(), comp::LessByRating{});
     std::print("Books sorted by popularity: {}\n\n==================\n", db);
 
     // Author histogram
@@ -65,11 +65,11 @@ int main() {
     std::print("\n\nTop 3 books by rating:\n");
     std::for_each(topBooks.cbegin(), topBooks.cend(), [](const auto &v) { std::print("{}\n", v.get()); });
 
-    auto orwellBookIt = std::find_if(db.begin(), db.end(), [](const auto &v) { return v.author == "George Orwell"; });
+    auto orwellBookIt = std::find_if(db.begin(), db.end(), 
+        [](const auto &v) { return v.author == "George Orwell"; });
     if (orwellBookIt != db.end()) {
         std::print("\n\nTransparent lookup by authors. Found Orwell's book: {}\n", *orwellBookIt);
     }
-    */
-
+ 
     return 0;
 }

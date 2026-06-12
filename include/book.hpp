@@ -39,8 +39,8 @@ constexpr Genre GenreFromString(std::string_view s)
 
 struct Book {
     // string_view для экономии памяти, чтобы ссылаться на оригинальную строку, хранящуюся в другом контейнере
-    std::string_view author;
     std::string title;
+    std::string_view author;
 
     int year;
     Genre genre;
@@ -48,28 +48,28 @@ struct Book {
     int read_count;
 
     // Ваш код для конструкторов здесь
-    constexpr Book(std::string_view a_author,
-                    std::string a_title,
+    constexpr Book(std::string a_title,
+                    std::string_view a_author,
                     int a_year,
                     Genre a_genre,
                     double a_rating,
                     int a_read_count) :
-    author(a_author),
     title(std::move(a_title)),
+    author(a_author),
     year(a_year),
     genre(a_genre),
     rating(a_rating),
     read_count(a_read_count)
     { }
 
-    constexpr Book(std::string_view a_author,
-                std::string a_title,
+    constexpr Book(std::string a_title,
+                std::string_view a_author,
                 int a_year,
                 std::string a_genre,
                 double a_rating,
                 int a_read_count) :
-    author(a_author),
     title(std::move(a_title)),
+    author(a_author),
     year(a_year),
     genre(GenreFromString(a_genre)),
     rating(a_rating),

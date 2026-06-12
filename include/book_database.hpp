@@ -25,6 +25,13 @@ public:
     using AuthorContainer = std::unordered_set<std::string>;
 
     BookDatabase() = default;
+    BookDatabase(std::initializer_list<Book> bookList)
+    {  
+        for(const Book& it : bookList)
+        {
+            PushBack(it);
+        }
+    }
 
     void Clear() {
         books_.clear();
@@ -43,23 +50,22 @@ public:
     void EmplaceBack(Arg&& ... a_Arg)
     {
         auto tuple = std::forward_as_tuple(std::forward<Arg>(a_Arg)...);
-        auto it = authors_.insert(std::get<0>(tuple)).first;
-        books_.emplace_back(*it, std::get<1>(tuple), 
+        auto it = authors_.insert(std::string(std::get<1>(tuple))).first;
+        books_.emplace_back(std::string(std::get<0>(tuple)), *it,
                     std::get<2>(tuple), std::get<3>(tuple), 
                     std::get<4>(tuple), std::get<5>(tuple));
     }
 
     void PushBack(const Book& a_Book)
     {
-        EmplaceBack(a_Book.author, a_Book.title, 
+        EmplaceBack(a_Book.title, a_Book.author,
             a_Book.year, a_Book.genre,
             a_Book.rating, a_Book.read_count);
     }
 
     void PushBack(Book&& a_Book)
     {
-        EmplaceBack(a_Book.author, 
-            std::move(a_Book.title), 
+        EmplaceBack(std::move(a_Book.title), a_Book.author,
             a_Book.year, a_Book.genre,
             a_Book.rating, a_Book.read_count);
     }
