@@ -17,7 +17,7 @@ namespace bookdb {
 template <BookContainerLike T, typename Comparator = TransparentStringLess>
 auto buildAuthorHistogramFlat(const BookDatabase<T> &cont, Comparator comp = {}) 
 {
-    std::flat_map<std::string_view, size_t, TransparentStringLess> res;
+    std::flat_map<std::string_view, size_t, Comparator> res(comp);
     for(auto& book : cont)
         ++res[book.author];
     return res;

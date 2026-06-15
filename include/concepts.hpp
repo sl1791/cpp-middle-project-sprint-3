@@ -15,22 +15,14 @@ concept BookContainerLike = requires(T t)
     t.begin();
     t.end();
     { *t.begin() } -> std::convertible_to<const Book&>;
+    { t.size() } -> std::convertible_to<std::size_t>;
 };
 
 template <typename T>
-concept BookIterator = requires(T t) 
-{
-    t.operator ++();
-    { *t } -> std::convertible_to<typename T::value_type>;
-};
+concept BookIterator = std::input_iterator<T>;
 
 template <typename S, typename I>
-concept BookSentinel = requires(S s, I i) {
-    { i != s } -> std::convertible_to<bool>;
-    { s != i } -> std::convertible_to<bool>;
-    { i == s } -> std::convertible_to<bool>;
-    { s == i } -> std::convertible_to<bool>;
-};
+concept BookSentinel = std::sentinel_for<S, I>;
 
 template <typename P>
 concept BookPredicate = requires(P p, const Book& book) 

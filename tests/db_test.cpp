@@ -55,8 +55,10 @@ TEST(BookDatabase, EmptyDatabase)
     EXPECT_NO_THROW(calculateAverageRating(db));
     EXPECT_NO_THROW(filterBooks(db.begin(), db.end(), all_of(YearBetween(1900, 1999), RatingAbove(4.5))));
     EXPECT_NO_THROW(getTopNBy(db, 3, comp::LessByRating{}));
-    EXPECT_NO_THROW(std::find_if(db.begin(), db.end(), 
-        [](const auto &v) { return v.author == "George Orwell"; }));
+    bool is_equal;
+    EXPECT_NO_THROW(is_equal = (db.end() == std::find_if(db.begin(), db.end(), 
+        [](const auto &v) { return v.author == "George Orwell"; })));
+    EXPECT_TRUE(is_equal);
     
     auto histogram = buildAuthorHistogramFlat(db);
     GTEST_EXPECT_TRUE(histogram.empty());
@@ -86,4 +88,14 @@ TEST(BookDatabase, InitializerList)
     EXPECT_EQ(db.size(), 2); 
     GTEST_EXPECT_TRUE(IsEQ(*db.begin(), bk1)); 
     GTEST_EXPECT_TRUE(IsEQ(*(db.begin() + 1), bk2)); 
+}
+
+TEST(BookDatabase, AuthorHistogram) 
+{ 
+    const Book bk1 = {"1984", "George Orwell", 1949, Genre::SciFi, 4., 190};
+    const Book bk2 = {"The Great Gatsby", "F. Scott Fitzgerald", 1925, Genre::Fiction, 4.5, 120};
+    BookDatabase<std::vector<Book>> db = {bk1, bk2};
+
+    auto histogram = buildAuthorHistogramFlat(db);
+    EXPECT_NO_THROW(std::print("Author histogram: {}", histogram));
 }
