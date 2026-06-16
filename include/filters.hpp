@@ -45,9 +45,9 @@ namespace bookdb {
   template <BookPredicate... Preds>
   constexpr auto any_of(Preds... preds)
   {
-    return [preds...](const Book& book)
+    return [... ps = std::move(preds)](const Book& book)
         {
-            return (preds(book) || ...);
+            return (ps(book) || ...);
         };
   }
 

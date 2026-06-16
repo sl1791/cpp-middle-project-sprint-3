@@ -19,7 +19,7 @@ constexpr std::string_view s_Mystery = "Mystery";
 
 constexpr Genre GenreFromString(std::string_view s) 
 {
-    constexpr std::array<std::pair<std::string_view, Genre>, 5> 
+    static constexpr std::array<std::pair<std::string_view, Genre>, 5> 
         genres = 
         {{
             {s_Fiction, Genre::Fiction} ,
@@ -48,13 +48,13 @@ struct Book {
     int read_count;
 
     // Ваш код для конструкторов здесь
-    constexpr Book(std::string a_title,
+    constexpr Book(std::string_view a_title,
                     std::string_view a_author,
                     int a_year,
                     Genre a_genre,
                     double a_rating,
                     int a_read_count) :
-    title(std::move(a_title)),
+    title(a_title),
     author(a_author),
     year(a_year),
     genre(a_genre),
@@ -62,19 +62,24 @@ struct Book {
     read_count(a_read_count)
     { }
 
-    constexpr Book(std::string a_title,
+    constexpr Book(std::string_view a_title,
                 std::string_view a_author,
                 int a_year,
                 std::string a_genre,
                 double a_rating,
                 int a_read_count) :
-    title(std::move(a_title)),
+    title(a_title),
     author(a_author),
     year(a_year),
     genre(GenreFromString(a_genre)),
     rating(a_rating),
     read_count(a_read_count)
     { }
+
+    Book(const Book&) = default;
+    Book(Book&&) = default;
+    Book& operator =(const Book&) = default;
+    Book& operator =(Book&&) = default;
 }; // Book
 
 }  // namespace bookdb

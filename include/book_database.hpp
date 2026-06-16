@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 #include <unordered_set>
+#include <flat_map>
 
 #include "book.hpp"
 #include "concepts.hpp"
@@ -19,6 +20,7 @@ public:
     using iterator = BookContainer::iterator;
     using const_iterator = BookContainer::const_iterator;
     using size_type = BookContainer::size_type;
+    using value_type = Book;
 
     // Ваш код здесь
 
@@ -49,25 +51,23 @@ public:
     template<typename ... Arg>
     void EmplaceBack(Arg&& ... a_Arg)
     {
-        auto tuple = std::forward_as_tuple(std::forward<Arg>(a_Arg)...);
-        auto it = authors_.insert(std::string(std::get<1>(tuple))).first;
-        books_.emplace_back(std::string(std::get<0>(tuple)), *it,
-                    std::get<2>(tuple), std::get<3>(tuple), 
-                    std::get<4>(tuple), std::get<5>(tuple));
+        auto &newBook = books_.emplace_back(std::forward<Arg>(a_Arg)...);
+        auto [author, _] = authors_.emplace(newBook.author);
+        newBook.author = *author;
     }
 
     void PushBack(const Book& a_Book)
     {
-        EmplaceBack(a_Book.title, a_Book.author,
-            a_Book.year, a_Book.genre,
-            a_Book.rating, a_Book.read_count);
+        auto &newBook = books_.emplace_back(a_Book);
+        auto [author, _] = authors_.emplace(newBook.author);
+        newBook.author = *author;
     }
 
     void PushBack(Book&& a_Book)
     {
-        EmplaceBack(std::move(a_Book.title), a_Book.author,
-            a_Book.year, a_Book.genre,
-            a_Book.rating, a_Book.read_count);
+        auto &newBook = books_.emplace_back(std::move(a_Book));
+        auto [author, _] = authors_.emplace(newBook.author);
+        newBook.author = *author;
     }
 
     std::span<const Book> GetBooks() const
@@ -79,11 +79,11 @@ public:
         return std::span{books_};
     }
 
-    const AuthorContainer &GetAuthors()
+    [[nodiscard]] const AuthorContainer &GetAuthors()
     {
         return authors_;
     }
-    const AuthorContainer &GetAuthors() const
+    [[nodiscard]] const AuthorContainer &GetAuthors() const
     {
         return authors_;
     }
@@ -123,4 +123,21 @@ struct formatter<bookdb::BookDatabase<std::vector<bookdb::Book>>> {
         return ctx.begin();  // Просто игнорируем пользовательский формат
     }
 };
+
+template <typename Comparator>
+struct formatter<std::flat_map<std::string_view, size_t, Comparator>> {
+    template <typename FormatContext>
+    auto format(const std::flat_map<std::string_view, size_t, Comparator> &histogram, FormatContext &fc) const {
+        format_to(fc.out(), "\n");
+        for (const auto &[author, val] : histogram) {
+            format_to(fc.out(), "- {} - {}\n", author, val);
+        }
+        return fc.out();
+    }
+
+    constexpr auto parse(format_parse_context &ctx) {
+        return ctx.begin();  // Просто игнорируем пользовательский формат
+    }
+};
+
 }  // namespace std
